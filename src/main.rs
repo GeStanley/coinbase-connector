@@ -1,18 +1,8 @@
 use actix_web::{get, post, web, App, HttpResponse, HttpServer, Responder};
+use controller::websocket_controller::{index};
+use controller::status_controller::{hello, echo, manual_hello};
 
-#[get("/")]
-async fn hello() -> impl Responder {
-    HttpResponse::Ok().body("Hello world!")
-}
-
-#[post("/echo")]
-async fn echo(req_body: String) -> impl Responder {
-    HttpResponse::Ok().body(req_body)
-}
-
-async fn manual_hello() -> impl Responder {
-    HttpResponse::Ok().body("Hey there!")
-}
+pub mod controller;
 
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
@@ -21,6 +11,7 @@ async fn main() -> std::io::Result<()> {
             .service(hello)
             .service(echo)
             .route("/hey", web::get().to(manual_hello))
+            .route("/ws/", web::get().to(index))
     })
     .bind(("127.0.0.1", 8080))?
     .run()
