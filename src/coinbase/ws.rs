@@ -1,6 +1,6 @@
-use crate::lobby::Lobby;
-use crate::messages::{ClientActorMessage, Connect, Disconnect, WsMessage};
-use actix::{fut, ActorContext, ActorFuture, ContextFutureSpawner, WrapFuture};
+use crate::coinbase::lobby::Lobby;
+use crate::coinbase::messages::{ClientActorMessage, Connect, Disconnect, WsMessage};
+use actix::{fut, ActorContext, ContextFutureSpawner, WrapFuture, ActorFutureExt};
 use actix::{Actor, Addr, Running, StreamHandler};
 use actix::{AsyncContext, Handler};
 use actix_web_actors::ws;
@@ -97,7 +97,7 @@ impl StreamHandler<Result<ws::Message, ws::ProtocolError>> for WsConn {
             Ok(ws::Message::Nop) => (),
             Ok(Text(s)) => self.lobby_addr.do_send(ClientActorMessage {
                 id: self.id,
-                msg: s,
+                msg: s.parse().unwrap(),
                 room_id: self.room,
             }),
             Err(e) => std::panic::panic_any(e),
