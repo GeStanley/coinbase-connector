@@ -1,26 +1,29 @@
-
 use std::any::Any;
 use std::error::Error;
 use std::io::Read;
-use bytestring::ByteString;
 
 use actix::Actor;
+use actix_http::encoding::Decoder;
 use actix_web::{App, HttpServer, web, web::Data};
 use actix_web::dev::Payload;
-use actix_http::encoding::Decoder;
 use awc::{Client, ClientResponse, ws};
-use awc::ws::{Message};
+use awc::ws::Message;
+use bytestring::ByteString;
 use futures_util::{SinkExt as _, StreamExt as _};
 use rand::RngCore;
+use serde::{Deserialize, Serialize};
 
 use coinbase::lobby::Lobby;
 use coinbase::start_connection::start_connection as start_connection_route;
-use controller::status_controller::{status};
-use controller::order_book_controller::{order_book_route};
+use controller::order_book_controller::order_book_route;
+use controller::status_controller::status;
 use controller::websocket_controller::index;
-use serde::{Deserialize, Serialize};
-use crate::coinbase::coinbase_api::{connect_websocket};
-use crate::coinbase::jwt::token::{create_api_key};
+use crate::coinbase::coinbase_api::connect_websocket;
+
+use crate::coinbase::coinbase_ws::CoinbaseConn;
+// use crate::coinbase::coinbase_ws::CoinbaseConn::subscribe;
+use crate::coinbase::feed::CoinbaseMarketData;
+use crate::coinbase::jwt::token::create_api_key;
 
 pub mod controller;
 pub mod coinbase;
@@ -53,6 +56,23 @@ async fn main() -> std::io::Result<()> {
 
     connect_websocket(&key).await;
     // echo_server().await;
+
+
+    let (_res, mut connection) = match Client::builder().max_http_version(awc::http::Version::HTTP_11).finish()
+        .ws("wss://advanced-trade-ws.coinbase.com")
+        .max_frame_size(6000_000)
+        .connect()
+        .await {
+        Ok((_resp, connection)) => (_resp, connection),
+        Err(error) => {
+            println!("Error: {}", error);
+            panic!("Problem creating websocket connection.");
+        },
+    };
+
+    let market_data_feed = CoinbaseMarketData::default().start();
+    let coinbase_connection = CoinbaseConn::new(key, market_data_feed, connection).start();
+    coinbase_connection.subscribe("BTC-USD", "level2");
 
     let chat_server = Lobby::default().start();
 

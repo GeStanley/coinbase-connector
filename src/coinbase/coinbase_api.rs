@@ -1,6 +1,8 @@
 use std::ptr::null;
+use actix::WrapFuture;
 use actix_http::ws::{Frame, Message, ProtocolError};
 use awc::{Client, ws};
+use awc::ws::WebsocketsRequest;
 use bytestring::ByteString;
 use futures_util::{SinkExt, StreamExt};
 use serde::{Deserialize, Serialize};
@@ -39,6 +41,10 @@ pub fn build_subscribe(product_ids: Vec<String>, channel: String, jwt: String) -
 }
 
 pub async fn connect_websocket(key: &CoinbaseCloudApi) {
+
+    let request: WebsocketsRequest = Client::builder().max_http_version(awc::http::Version::HTTP_11).finish()
+        .ws("wss://advanced-trade-ws.coinbase.com")
+        .max_frame_size(6000_000);
 
     let (_res, mut connection) = match Client::builder().max_http_version(awc::http::Version::HTTP_11).finish()
         .ws("wss://advanced-trade-ws.coinbase.com")
@@ -84,8 +90,22 @@ pub async fn connect_websocket(key: &CoinbaseCloudApi) {
             Ok(frame) => {
                 match frame {
                     Frame::Text(text) => {
-                        println!("Received Text: {:?}", text);
-                        let udpate : WebsocketResponse = serde_json::from_str(std::str::from_utf8(&*text).unwrap()).unwrap();
+                        // println!("Received Text: {:?}", text);
+                        let update : WebsocketResponse = serde_json::from_str(std::str::from_utf8(&*text).unwrap()).unwrap();
+                        for event in update.events.iter() {
+                            match event.event_type.as_ref().map(String::as_ref) {
+                                None => {}
+                                Some("snapshot") => {
+                                    println!("received snapshot sequence number {}", update.sequence_num);
+                                    let update = &event.updates;
+                                }
+                                Some("update") => {
+                                    println!("received udpate sequence number {}", update.sequence_num);
+                                    let update = &event.updates;
+                                }
+                                _ => {}
+                            }
+                        }
                         println!("serialized");
                     }
                     Frame::Binary(_) => {

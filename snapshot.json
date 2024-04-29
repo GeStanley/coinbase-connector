@@ -1,0 +1,38 @@
+{
+  "channel": "l2_data",
+  "client_id": "",
+  "timestamp": "2024-04-07T13:29:53.918924108Z",
+  "sequence_num": 0,
+  "events": [
+    {
+      "type": "snapshot",
+      "product_id": "ETH-BTC",
+      "updates": [
+        {
+          "side": "bid",
+          "event_time": "2024-04-07T13:29:53.523626287Z",
+          "price_level": "0.04911",
+          "new_quantity": "0.872"
+        },
+        {
+          "side": "bid",
+          "event_time": "2024-04-07T13:29:53.523626287Z",
+          "price_level": "0.0491",
+          "new_quantity": "29.26202358"
+        },
+        {
+          "side": "offer",
+          "event_time": "2024-04-07T13:29:53.523626287Z",
+          "price_level": "0.04912",
+          "new_quantity": "12.36374816"
+        },
+        {
+          "side": "offer",
+          "event_time": "2024-04-07T13:29:53.523626287Z",
+          "price_level": "0.04913",
+          "new_quantity": "26.56720826"
+        }
+      ]
+    }
+  ]
+}
