@@ -5,7 +5,7 @@ use jwtk::ecdsa::EcdsaPrivateKey;
 use jwtk::HeaderAndClaims;
 use rand::RngCore;
 use serde_json::{Map, Value};
-use crate::coinbase::coinbase_api::CoinbaseCloudApi;
+use crate::coinbase::coinbase_api::CoinbaseCloudApiV2;
 
 #[non_exhaustive]
 pub struct JwtSignatureConfig {
@@ -23,8 +23,8 @@ pub struct JwtSignatureConfig {
     uri: String,
 }
 
-pub fn create_api_key() -> CoinbaseCloudApi {
-    let file_path = "coinbase_cloud_api_key.json";
+pub fn create_api_key() -> CoinbaseCloudApiV2 {
+    let file_path = "private/coinbase_cloud_api_key.json";
     println!("Reading file {}", file_path);
     // dbg!(&args);
     let contents = fs::read_to_string(file_path)
@@ -39,7 +39,7 @@ pub fn create_api_key() -> CoinbaseCloudApi {
     }
 }
 
-pub fn sign_http(key: &CoinbaseCloudApi) -> Result<String, impl Error> {
+pub fn sign_http(key: &CoinbaseCloudApiV2) -> Result<String, impl Error> {
 
     let encoding_key = EcdsaPrivateKey::from_pem(key.privateKey.as_bytes()).unwrap();
 
@@ -67,7 +67,7 @@ pub fn sign_http(key: &CoinbaseCloudApi) -> Result<String, impl Error> {
     jwtk::sign(&mut header_and_claims, &encoding_key)
 }
 
-pub fn sign_websocket(key: &CoinbaseCloudApi) -> Result<String, impl Error> {
+pub fn sign_websocket(key: &CoinbaseCloudApiV2) -> Result<String, impl Error> {
 
     let encoding_key = EcdsaPrivateKey::from_pem(key.privateKey.as_bytes()).unwrap();
 

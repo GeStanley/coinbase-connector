@@ -54,25 +54,25 @@ async fn main() -> std::io::Result<()> {
 
     let key = create_api_key();
 
-    connect_websocket(&key).await;
+    // connect_websocket(&key).await;
     // echo_server().await;
 
 
-    let (_res, mut connection) = match Client::builder().max_http_version(awc::http::Version::HTTP_11).finish()
-        .ws("wss://advanced-trade-ws.coinbase.com")
-        .max_frame_size(6000_000)
-        .connect()
-        .await {
-        Ok((_resp, connection)) => (_resp, connection),
-        Err(error) => {
-            println!("Error: {}", error);
-            panic!("Problem creating websocket connection.");
-        },
-    };
+    // let (_res, mut connection) = match Client::builder().max_http_version(awc::http::Version::HTTP_11).finish()
+    //     .ws("wss://advanced-trade-ws.coinbase.com")
+    //     .max_frame_size(6000_000)
+    //     .connect()
+    //     .await {
+    //     Ok((_resp, connection)) => (_resp, connection),
+    //     Err(error) => {
+    //         println!("Error: {}", error);
+    //         panic!("Problem creating websocket connection.");
+    //     },
+    // };
 
     let market_data_feed = CoinbaseMarketData::default().start();
-    let coinbase_connection = CoinbaseConn::new(key, market_data_feed, connection).start();
-    coinbase_connection.subscribe("BTC-USD", "level2");
+    let coinbase_connection = CoinbaseConn::default(key, market_data_feed).start();
+    // coinbase_connection.subscribe("BTC-USD", "level2");
 
     let chat_server = Lobby::default().start();
 

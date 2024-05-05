@@ -31,6 +31,12 @@ pub struct CoinbaseCloudApi {
     createdByUserMongoId: String,
 }
 
+#[derive(Serialize, Deserialize)]
+pub struct CoinbaseCloudApiV2 {
+    pub name: String,
+    pub privateKey: String,
+}
+
 pub fn build_subscribe(product_ids: Vec<String>, channel: String, jwt: String) -> WebsocketSubscription {
     WebsocketSubscription {
         message_type: String::from("subscribe"),
@@ -40,7 +46,7 @@ pub fn build_subscribe(product_ids: Vec<String>, channel: String, jwt: String) -
     }
 }
 
-pub async fn connect_websocket(key: &CoinbaseCloudApi) {
+pub async fn connect_websocket(key: &CoinbaseCloudApiV2) {
 
     let request: WebsocketsRequest = Client::builder().max_http_version(awc::http::Version::HTTP_11).finish()
         .ws("wss://advanced-trade-ws.coinbase.com")
@@ -133,7 +139,7 @@ pub async fn connect_websocket(key: &CoinbaseCloudApi) {
     };
 }
 
-pub async fn send_http_request(key: &CoinbaseCloudApi) {
+pub async fn send_http_request(key: &CoinbaseCloudApiV2) {
     let jwt_token = match sign_http(&key) {
         Ok(token) => {token}
         Err(error) => {
