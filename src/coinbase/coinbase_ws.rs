@@ -1,17 +1,13 @@
-use std::fmt::Error;
-use std::future::{Future};
 use std::time::Instant;
 
-use actix::{Actor, ActorContext, ActorFutureExt, Addr, AsyncContext, Context, Handler};
+use actix::{Actor, ActorFutureExt, Addr, AsyncContext, Context, Handler, WrapFuture};
 use actix_codec::Framed;
-use actix_http::ws::{Codec, Frame};
+use actix_http::ws::{Codec, Frame, ProtocolError};
 use actix_web_actors::ws;
 use awc::{BoxedSocket, Client};
 use bytestring::ByteString;
-use futures_util::{SinkExt, StreamExt, try_join};
-use futures_util::stream::Next;
+use futures_util::{FutureExt, SinkExt, StreamExt};
 use serde_json::to_string;
-use tokio::select;
 use uuid::Uuid;
 
 use crate::coinbase::api::websocket::WebsocketResponse;
@@ -39,17 +35,17 @@ pub struct CoinbaseConn {
     id: Uuid,
     data: Addr<CoinbaseMarketData>,
     hb: Instant,
-    websocket: Option<Framed<BoxedSocket, Codec>>,
+    websocket: Framed<BoxedSocket, Codec>,
 }
 
 impl CoinbaseConn {
-    pub fn default(key: CoinbaseCloudApiV2, data: Addr<CoinbaseMarketData>) -> CoinbaseConn {
+    pub fn default(key: CoinbaseCloudApiV2, data: Addr<CoinbaseMarketData>, frame: Framed<BoxedSocket, Codec>) -> CoinbaseConn {
         CoinbaseConn {
             key,
             id: Uuid::new_v4(),
             hb: Instant::now(),
             data,
-            websocket: None,
+            websocket: frame,
         }
     }
 }
@@ -89,50 +85,89 @@ impl Actor for CoinbaseConn {
     type Context = Context<Self>;
 
     fn started(&mut self, ctx: &mut Self::Context) {
-        ctx.notify(WebsocketConnect {});
-        ctx.notify(WebsocketSubscribe { product: "BTC-USD".to_string(), channel: "level2".to_string() });
-        let runtime = tokio::runtime::Runtime::new().unwrap();
-        loop {
-            let result = runtime.block_on(self.websocket.as_mut().unwrap().next());
-            if let Some(msg) = result {
-                match msg {
-                    Ok(frame) => {
-                        self.handle_frame(frame);
-                    }
-                    Err(error) => {
-                        println!("Error: {}", error);
-                        panic!("Problem receiving a websocket message.");
-                    }
-                }
-            }
-        }
+
+        // let connection_future =
+        //     Client::builder().max_http_version(awc::http::Version::HTTP_11).finish()
+        //         .ws("wss://advanced-trade-ws.coinbase.com")
+        //         .max_frame_size(6000_000)
+        //         .connect()
+        //         .then(|result| async {
+        //             match result {
+        //                 Ok((res, conn)) => {
+        //                     println!("{:?}", res);
+        //                     self.websocket = Some(conn);
+        //                 }
+        //                 Err(error) => {
+        //                     println!("Error: {}", error);
+        //                     panic!("Problem creating websocket connection.");
+        //                 }
+        //             }
+        //         });
+
+
+
+        // ctx.notify(WebsocketConnect {});
+        // ctx.notify(WebsocketSubscribe { product: "BTC-USD".to_string(), channel: "level2".to_string() });
+        // loop {
+        //     let future_msg = self.websocket.next().then(|event| async {
+        //         match event {
+        //             Some(result) => {
+        //                 match result {
+        //                     Ok(frame) => {
+        //                         self.handle_frame(frame);
+        //                     }
+        //                     Err(_) => {}
+        //                 }
+        //             }
+        //             None => {}
+        //
+        //         }
+        //     });
+        //
+        //     let msg_future = future_msg.into_actor(self);
+        //     ctx.wait(msg_future);
+        // };
     }
 }
+
 
 impl Handler<WebsocketConnect> for CoinbaseConn {
     type Result = ();
 
     fn handle(&mut self, _msg: WebsocketConnect, ctx: &mut Self::Context) -> Self::Result {
-        let runtime = tokio::runtime::Runtime::new().unwrap();
-
-        let result = runtime.block_on(
-            Client::builder().max_http_version(awc::http::Version::HTTP_11).finish()
-                .ws("wss://advanced-trade-ws.coinbase.com")
-                .max_frame_size(6000_000)
-                .connect()
-        );
-
-        match result {
-            Ok((resp, connection)) => {
-                println!("{:?}", resp);
-                self.websocket = Some(connection);
-            },
-            Err(error) => {
-                println!("Error: {}", error);
-                ctx.stop();
-            },
-        }
-
+        // let mut connection = None;
+        // let connection_future =
+        //     Client::builder().max_http_version(awc::http::Version::HTTP_11).finish()
+        //         .ws("wss://advanced-trade-ws.coinbase.com")
+        //         .max_frame_size(6000_000)
+        //         .connect()
+        //         .then(|result| async {
+        //             match result {
+        //                 Ok((res, conn)) => {
+        //                     println!("{:?}", res);
+        //                     connection = Some(conn);
+        //                 }
+        //                 Err(error) => {
+        //                     println!("Error: {}", error);
+        //                     panic!("Problem creating websocket connection.");
+        //                 }
+        //             }
+        //         });
+        //
+        // let actor_future = connection_future.into_actor(self);
+        // ctx.wait(actor_future);
+        //
+        // self.websocket = connection;
+        // match result {
+        //     Ok((resp, connection)) => {
+        //         println!("{:?}", resp);
+        //         self.websocket = Some(connection);
+        //     },
+        //     Err(error) => {
+        //         println!("Error: {}", error);
+        //         ctx.stop();
+        //     },
+        // }
     }
 }
 
@@ -152,7 +187,7 @@ impl Handler<WebsocketSubscribe> for CoinbaseConn {
         let msg = result.unwrap();
 
         let runtime = tokio::runtime::Runtime::new().unwrap();
-        let result = runtime.block_on(self.websocket.as_mut().unwrap().send(ws::Message::Text(ByteString::from(msg))));
+        let result = runtime.block_on(self.websocket.send(ws::Message::Text(ByteString::from(msg))));
 
         match result {
             Ok(_) => {

@@ -47,7 +47,9 @@ impl Default for CoinbaseMarketData {
 
 impl Actor for CoinbaseMarketData {
     type Context = Context<Self>;
-
+    fn started(&mut self, ctx: &mut Self::Context) {
+        println!("order book started!");
+    }
 }
 
 impl Handler<Connect> for CoinbaseMarketData {
