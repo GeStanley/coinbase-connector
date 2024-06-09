@@ -47,7 +47,7 @@ pub fn build_subscribe(product_ids: Vec<String>, channel: String, jwt: String) -
 }
 
 pub async fn connect_websocket() -> Framed<BoxedSocket, Codec> {
-    let (_res, mut connection) = match Client::builder().max_http_version(awc::http::Version::HTTP_11).finish()
+    let (_res, connection) = match Client::builder().max_http_version(awc::http::Version::HTTP_11).finish()
         .ws("wss://advanced-trade-ws.coinbase.com")
         .max_frame_size(6000_000)
         .connect()

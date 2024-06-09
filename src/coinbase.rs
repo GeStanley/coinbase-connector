@@ -6,5 +6,7 @@ pub mod start_connection;
 mod websocket_feed;
 pub mod coinbase_api;
 pub mod api;
+pub mod handlers;
 pub(crate) mod coinbase_ws;
 pub(crate) mod feed;
+mod methods;

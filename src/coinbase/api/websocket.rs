@@ -1,7 +1,5 @@
-use actix::{Message, Recipient};
+use actix::Message;
 use serde::{Deserialize, Serialize};
-use uuid::Uuid;
-
 
 #[derive(Serialize, Deserialize)]
 pub struct WebsocketSubscription {

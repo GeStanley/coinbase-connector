@@ -19,9 +19,11 @@ use controller::order_book_controller::order_book_route;
 use controller::status_controller::status;
 use controller::websocket_controller::index;
 
-use crate::coinbase::coinbase_api::{connect_websocket, listen, subscribe};
+use crate::coinbase::coinbase_ws::CoinbaseConn;
 // use crate::coinbase::coinbase_ws::CoinbaseConn::subscribe;
 use crate::coinbase::feed::CoinbaseMarketData;
+use crate::coinbase::handlers::connect::WebsocketConnect;
+use crate::coinbase::handlers::subscribe::WebsocketSubscribe;
 use crate::coinbase::jwt::token::create_api_key;
 
 pub mod controller;
@@ -56,16 +58,18 @@ async fn main() -> std::io::Result<()> {
     // connect_websocket(&key).await;
     // echo_server().await;
 
-    let mut connection= connect_websocket().await;
-    subscribe(&mut connection, &key, vec!["BTC-USD".to_string()], "level2".to_string()).await;
+    // let mut connection= connect_websocket().await;
+    // subscribe(&mut connection, &key, vec!["BTC-USD".to_string()], "level2".to_string()).await;
 
     let market_data_feed = CoinbaseMarketData::default().start();
 
-    listen(&mut connection, market_data_feed).await;
+    // listen(&mut connection, market_data_feed).await;
 
 
-    // let coinbase_connection = CoinbaseConn::default(key, market_data_feed, connection).start();
+    let coinbase_connection = CoinbaseConn::start_without_connection(key, market_data_feed);
     // coinbase_connection.subscribe("BTC-USD", "level2");
+    coinbase_connection.send(WebsocketConnect {});
+    coinbase_connection.send(WebsocketSubscribe { product: "BTC-USD".to_string(), channel: "level2".to_string() });
 
     let chat_server = Lobby::default().start();
 
