@@ -31,7 +31,7 @@ pub fn create_api_key() -> CoinbaseCloudApiV2 {
         .expect("Should have been able to read the file");
 
     match serde_json::from_str(&*contents) {
-        Ok(key) => {key}
+        Ok(key) => { key }
         Err(error) => {
             println!("Error: {}", error);
             panic!("Problem parsing api key.");
@@ -40,7 +40,6 @@ pub fn create_api_key() -> CoinbaseCloudApiV2 {
 }
 
 pub fn sign_http(key: &CoinbaseCloudApiV2) -> Result<String, impl Error> {
-
     let encoding_key = EcdsaPrivateKey::from_pem(key.privateKey.as_bytes()).unwrap();
 
     // let encoding_key = &EncodingKey::from_ec_pem(key_secret_bytes).unwrap();
@@ -67,8 +66,7 @@ pub fn sign_http(key: &CoinbaseCloudApiV2) -> Result<String, impl Error> {
     jwtk::sign(&mut header_and_claims, &encoding_key)
 }
 
-pub fn sign_websocket(key: &CoinbaseCloudApiV2) -> Result<String, impl Error> {
-
+pub fn sign_websocket(key: &CoinbaseCloudApiV2) -> Result<String, ()> {
     let encoding_key = EcdsaPrivateKey::from_pem(key.privateKey.as_bytes()).unwrap();
 
     // let encoding_key = &EncodingKey::from_ec_pem(key_secret_bytes).unwrap();
@@ -91,5 +89,8 @@ pub fn sign_websocket(key: &CoinbaseCloudApiV2) -> Result<String, impl Error> {
     headers_map.insert("typ".to_string(), Value::from("JWT".to_string()));
     header_and_claims.header_mut().extra = headers_map;
 
-    jwtk::sign(&mut header_and_claims, &encoding_key)
+    match jwtk::sign(&mut header_and_claims, &encoding_key) {
+        Ok(token) => { Ok(token) }
+        Err(_) => { Err(()) }
+    }
 }

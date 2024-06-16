@@ -1,8 +1,7 @@
 use actix::Addr;
 use actix_codec::Framed;
-use actix_http::ws::{Codec, Frame, Message};
+use actix_http::ws::{Codec, Frame};
 use awc::{BoxedSocket, Client};
-use bytestring::ByteString;
 use futures_util::{SinkExt, StreamExt};
 use serde::{Deserialize, Serialize};
 use serde_json::to_string;
@@ -64,31 +63,17 @@ pub async fn connect_websocket() -> Framed<BoxedSocket, Codec> {
     connection
 }
 
-pub async fn subscribe(connection: &mut Framed<BoxedSocket, Codec>, key: &CoinbaseCloudApiV2, product: Vec<String>, channel: String) {
+pub fn get_subscribe_message(key: &CoinbaseCloudApiV2, product: Vec<String>, channel: String) -> String {
     let jwt_token = match sign_websocket(&key) {
         Ok(token) => { token }
         Err(error) => {
-            println!("Error: {}", error);
+            println!("Error: {:?}", error);
             panic!("Problem creating jwt token.");
         }
     };
 
     let result = to_string(&build_subscribe(product, channel, jwt_token));
-
-    let message = result.unwrap();
-    println!("{}", message);
-
-    match connection
-        .send(Message::Text(ByteString::from(message)))
-        .await {
-        Ok(_) => {
-            println!("Message sent.");
-        }
-        Err(error) => {
-            println!("Error: {}", error);
-            panic!("Problem sending on websocket connection.");
-        }
-    };
+    result.unwrap()
 }
 
 pub async fn listen(connection: &mut Framed<BoxedSocket, Codec>, order_book: Addr<CoinbaseMarketData>) {
