@@ -1,4 +1,3 @@
-use either::Either;
 use actix::Message;
 use serde::{Deserialize, Serialize};
 
