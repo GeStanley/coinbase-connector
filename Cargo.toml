@@ -30,3 +30,4 @@ uuid = { version = "1.8.0", features = ["v4", "serde"] }
 futures = "0.3.30"
 log = "0.4.21"
 bytes = "1.5.0"
+either = "1.12.0"

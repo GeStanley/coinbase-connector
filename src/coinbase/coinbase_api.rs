@@ -1,13 +1,12 @@
-use actix::Addr;
 use actix_codec::Framed;
-use actix_http::ws::{Codec, Frame};
+use actix_http::ws::Codec;
 use awc::{BoxedSocket, Client};
-use futures_util::{SinkExt, StreamExt};
+use futures_util::SinkExt;
 use serde::{Deserialize, Serialize};
 use serde_json::to_string;
 
 use crate::_handle_response;
-use crate::coinbase::api::websocket::{WebsocketResponse, WebsocketSubscription};
+use crate::coinbase::api::websocket::CoinbaseWebsocketSubscription;
 use crate::coinbase::jwt::token::{sign_http, sign_websocket};
 
 #[derive(Serialize, Deserialize)]
@@ -35,8 +34,8 @@ pub struct CoinbaseCloudApiV2 {
     pub privateKey: String,
 }
 
-pub fn build_subscribe(product_ids: Vec<String>, channel: String, jwt: String) -> WebsocketSubscription {
-    WebsocketSubscription {
+pub fn build_subscribe(product_ids: Vec<String>, channel: String, jwt: String) -> CoinbaseWebsocketSubscription {
+    CoinbaseWebsocketSubscription {
         message_type: String::from("subscribe"),
         product_ids,
         channel,

@@ -563,6 +563,7 @@ dependencies = [
  "bytestring",
  "chrono",
  "derivative",
+ "either",
  "env_logger",
  "futures",
  "futures-util",
@@ -737,6 +738,12 @@ dependencies = [
  "block-buffer",
  "crypto-common",
 ]
+
+[[package]]
+name = "either"
+version = "1.12.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "3dca9240753cf90908d7e4aac30f630662b02aebaa1b58a3cadabdb23385b58b"
 
 [[package]]
 name = "encoding_rs"
