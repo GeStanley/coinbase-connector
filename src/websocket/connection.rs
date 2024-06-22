@@ -9,15 +9,17 @@ use futures_util::stream::StreamExt;
 use log::{error, info};
 use openssl::ssl::SslConnector;
 use ws::{Frame, Message, Codec};
-use crate::websocket::market_data_handler::{MarketDataHandler, MessageReceivedRequest};
+use crate::websocket::message_handler::WebsocketMessageHandler;
+use crate::websocket::handlers::text::ReceivedText;
+
 
 pub struct WebsocketClient {
     sink: SinkWrite<ws::Message, SplitSink<Framed<BoxedSocket, Codec>, ws::Message>>,
-    subscriber: Addr<MarketDataHandler>,
+    subscriber: Addr<WebsocketMessageHandler>,
 }
 
 impl WebsocketClient {
-    pub fn start(subscriber: Addr<MarketDataHandler>, sink: SplitSink<Framed<BoxedSocket, Codec>, ws::Message>, stream: SplitStream<Framed<BoxedSocket, Codec>>) -> Addr<Self> {
+    pub fn start(subscriber: Addr<WebsocketMessageHandler>, sink: SplitSink<Framed<BoxedSocket, Codec>, ws::Message>, stream: SplitStream<Framed<BoxedSocket, Codec>>) -> Addr<Self> {
         WebsocketClient::create(|ctx| {
             ctx.add_stream(stream);
             WebsocketClient {
@@ -66,7 +68,7 @@ impl StreamHandler<Result<Frame, WsProtocolError>> for WebsocketClient {
     fn handle(&mut self, item: Result<Frame, WsProtocolError>, _ctx: &mut Self::Context) {
         match item.unwrap() {
             Frame::Text(text_bytes) => {
-                self.subscriber.do_send(MessageReceivedRequest { msg: text_bytes, });
+                self.subscriber.do_send(ReceivedText { msg: text_bytes, });
             }
             Frame::Binary(_) => {
                 info!("Binary received!");

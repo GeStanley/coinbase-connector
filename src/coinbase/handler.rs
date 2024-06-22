@@ -1,6 +1,6 @@
 use bytes::Bytes;
 
-use crate::websocket::market_data_handler::MarketDataHandler;
+use crate::websocket::message_handler::WebsocketMessageHandler;
 
 pub struct CoinbaseMarketDataHandler {
 
