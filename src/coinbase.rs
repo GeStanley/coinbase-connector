@@ -2,4 +2,4 @@ pub mod jwt;
 mod messages;
 pub mod coinbase_api;
 pub mod api;
-pub(crate) mod feed;
+pub mod handler;

@@ -8,7 +8,6 @@ use serde_json::to_string;
 
 use crate::_handle_response;
 use crate::coinbase::api::websocket::{WebsocketResponse, WebsocketSubscription};
-use crate::coinbase::feed::{CoinbaseMarketData, MarketDataSnapshot, MarketDataUpdate};
 use crate::coinbase::jwt::token::{sign_http, sign_websocket};
 
 #[derive(Serialize, Deserialize)]
@@ -76,7 +75,7 @@ pub fn get_subscribe_message(key: &CoinbaseCloudApiV2, product: Vec<String>, cha
     result.unwrap()
 }
 
-pub async fn listen(connection: &mut Framed<BoxedSocket, Codec>, order_book: Addr<CoinbaseMarketData>) {
+pub async fn listen(connection: &mut Framed<BoxedSocket, Codec>) {
     while let Some(res) = connection.next().await {
         match res {
             Ok(frame) => {
@@ -90,30 +89,30 @@ pub async fn listen(connection: &mut Framed<BoxedSocket, Codec>, order_book: Add
                                 Some("snapshot") => {
                                     println!("received snapshot sequence number {}", update.sequence_num);
                                     let update = &event.updates;
-                                    let result = order_book.send(MarketDataSnapshot {
-                                        id: Default::default(),
-                                        msg: "".to_string(),
-                                        room_id: Default::default(),
-                                    }).await;
-
-                                    match result {
-                                        Ok(res) => println!("Got result: {:?}", res),
-                                        Err(err) => println!("Got error: {}", err),
-                                    }
+                                    // let result = order_book.send(MarketDataSnapshot {
+                                    //     id: Default::default(),
+                                    //     msg: "".to_string(),
+                                    //     room_id: Default::default(),
+                                    // }).await;
+                                    //
+                                    // match result {
+                                    //     Ok(res) => println!("Got result: {:?}", res),
+                                    //     Err(err) => println!("Got error: {}", err),
+                                    // }
                                 }
                                 Some("update") => {
-                                    println!("received udpate sequence number {}", update.sequence_num);
-                                    let update = &event.updates;
-                                    let result = order_book.send(MarketDataUpdate {
-                                        id: Default::default(),
-                                        msg: "".to_string(),
-                                        room_id: Default::default(),
-                                    }).await;
-
-                                    match result {
-                                        Ok(res) => println!("Got result: {:?}", res),
-                                        Err(err) => println!("Got error: {}", err),
-                                    }
+                                    // println!("received udpate sequence number {}", update.sequence_num);
+                                    // let update = &event.updates;
+                                    // let result = order_book.send(MarketDataUpdate {
+                                    //     id: Default::default(),
+                                    //     msg: "".to_string(),
+                                    //     room_id: Default::default(),
+                                    // }).await;
+                                    //
+                                    // match result {
+                                    //     Ok(res) => println!("Got result: {:?}", res),
+                                    //     Err(err) => println!("Got error: {}", err),
+                                    // }
                                 }
                                 _ => {}
                             }

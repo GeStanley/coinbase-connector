@@ -1,23 +1,28 @@
 use actix::io::SinkWrite;
 use actix::prelude::*;
 use actix_codec::Framed;
-use awc::{error::WsProtocolError, ws, BoxedSocket, Client};
+use awc::{BoxedSocket, Client, error::WsProtocolError, ws};
 use bytestring::ByteString;
 use futures::stream::{SplitSink, SplitStream};
+use futures_util::SinkExt;
 use futures_util::stream::StreamExt;
 use log::{error, info};
 use openssl::ssl::SslConnector;
+use ws::{Frame, Message, Codec};
+use crate::websocket::market_data_handler::{MarketDataHandler, MessageReceivedRequest};
 
 pub struct WebsocketClient {
-    sink: SinkWrite<ws::Message, SplitSink<Framed<BoxedSocket, ws::Codec>, ws::Message>>,
+    sink: SinkWrite<ws::Message, SplitSink<Framed<BoxedSocket, Codec>, ws::Message>>,
+    subscriber: Addr<MarketDataHandler>,
 }
 
 impl WebsocketClient {
-    pub fn start(sink: SplitSink<Framed<BoxedSocket, ws::Codec>, ws::Message>, stream: SplitStream<Framed<BoxedSocket, ws::Codec>>) -> Addr<Self> {
+    pub fn start(subscriber: Addr<MarketDataHandler>, sink: SplitSink<Framed<BoxedSocket, Codec>, ws::Message>, stream: SplitStream<Framed<BoxedSocket, Codec>>) -> Addr<Self> {
         WebsocketClient::create(|ctx| {
             ctx.add_stream(stream);
             WebsocketClient {
                 sink: SinkWrite::new(sink, ctx),
+                subscriber,
             }
         })
     }
@@ -31,7 +36,7 @@ impl Actor for WebsocketClient {
     }
 }
 
-impl actix::io::WriteHandler<WsProtocolError> for WebsocketClient {}
+impl io::WriteHandler<WsProtocolError> for WebsocketClient {}
 
 #[derive(Message, Debug)]
 #[rtype(result = "()")]
@@ -46,7 +51,7 @@ impl Handler<WebsocketMessage> for WebsocketClient {
         info!("Pushing Message {:?}", msg.body);
         match self
             .sink
-            .write(actix_http::ws::Message::Text(ByteString::from(msg.body))) {
+            .write(Message::Text(ByteString::from(msg.body))) {
             Ok(_) => {
                 info!("Message sent!");
             }
@@ -57,23 +62,27 @@ impl Handler<WebsocketMessage> for WebsocketClient {
     }
 }
 
-impl StreamHandler<Result<ws::Frame, WsProtocolError>> for WebsocketClient {
-    fn handle(&mut self, item: Result<ws::Frame, WsProtocolError>, _ctx: &mut Self::Context) {
-        use ws::Frame;
+impl StreamHandler<Result<Frame, WsProtocolError>> for WebsocketClient {
+    fn handle(&mut self, item: Result<Frame, WsProtocolError>, _ctx: &mut Self::Context) {
         match item.unwrap() {
             Frame::Text(text_bytes) => {
-                let text = std::str::from_utf8(text_bytes.as_ref()).unwrap();
-                info!("Receiving Message: {}", text);
+                self.subscriber.do_send(MessageReceivedRequest { msg: text_bytes, });
             }
-            Frame::Binary(_) => {}
-            Frame::Continuation(_) => {}
+            Frame::Binary(_) => {
+                info!("Binary received!");
+            }
+            Frame::Continuation(_) => {
+                info!("Continuation received!");
+            }
             Frame::Ping(_) => {
                 info!("Ping received!");
             }
             Frame::Pong(_) => {
-                //self.hb = Instant::now();
+                info!("Pong received!");
             }
-            Frame::Close(_) => {}
+            Frame::Close(_) => {
+                info!("Close received!");
+            }
         }
     }
 }

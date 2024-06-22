@@ -16,14 +16,16 @@ use controller::status_controller::status;
 use controller::websocket_controller::index;
 
 use crate::coinbase::coinbase_api::{connect_websocket, get_subscribe_message};
+use crate::coinbase::handler::CoinbaseMarketDataHandler;
 use crate::coinbase::jwt::token::create_api_key;
 use crate::websocket::connection::WebsocketClient;
 use crate::websocket::connection::WebsocketMessage;
+use crate::websocket::market_data_handler::MarketDataHandler;
 
 pub mod controller;
 pub mod coinbase;
-mod marketdata;
 mod websocket;
+mod marketdata;
 
 async fn _handle_response(mut response: ClientResponse<Decoder<Payload>>) {
     let fn_name = "handle_response";
@@ -53,7 +55,12 @@ async fn main() -> std::io::Result<()> {
     let message = get_subscribe_message(&key, vec!["BTC-USD".to_string()], "level2".to_string());
     let mut connection = connect_websocket().await;
     let (sink, stream) = connection.split();
-    let addr = WebsocketClient::start(sink, stream);
+
+
+
+    let handler_addr = MarketDataHandler {}.start();
+
+    let addr = WebsocketClient::start(handler_addr, sink, stream);
 
     let _res = addr.send(WebsocketMessage {
         body: message
