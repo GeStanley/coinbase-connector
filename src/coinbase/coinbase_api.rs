@@ -75,65 +75,6 @@ pub fn get_subscribe_message(key: &CoinbaseCloudApiV2, product: Vec<String>, cha
     result.unwrap()
 }
 
-pub async fn listen(connection: &mut Framed<BoxedSocket, Codec>) {
-    while let Some(res) = connection.next().await {
-        match res {
-            Ok(frame) => {
-                match frame {
-                    Frame::Text(text) => {
-                        // println!("Received Text: {:?}", text);
-                        let update: WebsocketResponse = serde_json::from_str(std::str::from_utf8(&*text).unwrap()).unwrap();
-                        for event in update.events.iter() {
-                            match event.event_type.as_ref().map(String::as_ref) {
-                                None => {}
-                                Some("snapshot") => {
-                                    println!("received snapshot sequence number {}", update.sequence_num);
-                                    let update = &event.updates;
-                                    // let result = order_book.send(MarketDataSnapshot {
-                                    //     id: Default::default(),
-                                    //     msg: "".to_string(),
-                                    //     room_id: Default::default(),
-                                    // }).await;
-                                    //
-                                    // match result {
-                                    //     Ok(res) => println!("Got result: {:?}", res),
-                                    //     Err(err) => println!("Got error: {}", err),
-                                    // }
-                                }
-                                Some("update") => {
-                                    // println!("received udpate sequence number {}", update.sequence_num);
-                                    // let update = &event.updates;
-                                    // let result = order_book.send(MarketDataUpdate {
-                                    //     id: Default::default(),
-                                    //     msg: "".to_string(),
-                                    //     room_id: Default::default(),
-                                    // }).await;
-                                    //
-                                    // match result {
-                                    //     Ok(res) => println!("Got result: {:?}", res),
-                                    //     Err(err) => println!("Got error: {}", err),
-                                    // }
-                                }
-                                _ => {}
-                            }
-                        }
-                        println!("serialized");
-                    }
-                    Frame::Binary(_) => {}
-                    Frame::Continuation(_) => {}
-                    Frame::Ping(_) => {}
-                    Frame::Pong(_) => {}
-                    Frame::Close(_) => {}
-                }
-            }
-            Err(error) => {
-                println!("Error: {}", error);
-                panic!("Problem receiving a websocket message.");
-            }
-        };
-    };
-}
-
 pub async fn send_http_request(key: &CoinbaseCloudApiV2) {
     let jwt_token = match sign_http(&key) {
         Ok(token) => { token }

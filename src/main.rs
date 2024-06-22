@@ -23,7 +23,7 @@ use crate::websocket::message_handler::WebsocketMessageHandler;
 pub mod websocket;
 pub mod controller;
 pub mod coinbase;
-mod marketdata;
+pub mod marketdata;
 
 
 async fn _handle_response(mut response: ClientResponse<Decoder<Payload>>) {
