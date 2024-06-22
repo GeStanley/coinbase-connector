@@ -15,6 +15,6 @@ impl Handler<ReceivedText> for WebsocketMessageHandler {
     type Result = ();
 
     fn handle(&mut self, msg: ReceivedText, _ctx: &mut Context<Self>) {
-        println!("received coinbase market data message!")
+        self.process_text_message(msg.msg);
     }
 }

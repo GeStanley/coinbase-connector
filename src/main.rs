@@ -16,9 +16,10 @@ use controller::status_controller::status;
 use controller::websocket_controller::index;
 
 use crate::coinbase::coinbase_api::{connect_websocket, get_subscribe_message};
+use crate::coinbase::data_handler::CoinbaseDataHandler;
 use crate::coinbase::jwt::token::create_api_key;
 use crate::websocket::connection::{WebsocketClient, WebsocketMessage};
-use crate::websocket::message_handler::WebsocketMessageHandler;
+use crate::websocket::message_handler::{MarketDataHandler, WebsocketMessageHandler};
 
 pub mod websocket;
 pub mod controller;
@@ -36,12 +37,11 @@ async fn _handle_response(mut response: ClientResponse<Decoder<Payload>>) {
             let _foo = body.to_vec();
             println!("==== BODY ====");
             println!("{:?}", String::from_utf8(_foo));
-        },
+        }
         Err(_err) => {
             println!("error {:?}", _err);
         }
     }
-
 }
 
 #[actix_web::main]
@@ -55,9 +55,9 @@ async fn main() -> std::io::Result<()> {
     let mut connection = connect_websocket().await;
     let (sink, stream) = connection.split();
 
+    let boxed_handler: Box<dyn MarketDataHandler> = Box::new(CoinbaseDataHandler {});
 
-
-    let handler_addr = WebsocketMessageHandler {}.start();
+    let handler_addr = WebsocketMessageHandler { market_data_handler: boxed_handler }.start();
 
     let addr = WebsocketClient::start(handler_addr, sink, stream);
 
@@ -71,7 +71,7 @@ async fn main() -> std::io::Result<()> {
             .service(order_book_route)
             .route("/ws/", web::get().to(index))
     })
-    .bind(("127.0.0.1", 8080))?
-    .run()
-    .await
+        .bind(("127.0.0.1", 8080))?
+        .run()
+        .await
 }
