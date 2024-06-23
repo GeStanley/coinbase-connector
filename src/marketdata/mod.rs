@@ -20,7 +20,7 @@ mod tests {
 
         let mut order_book: Book = Book::new("some_product".parse().unwrap());
 
-        let snapshot = "snapshot.json";
+        let snapshot = "tests/resources/snapshot.json";
         let snapshot_contents = fs::read_to_string(snapshot);
         let websocket_snapshot: CoinbaseWebsocketMessage = serde_json::from_str(&*snapshot_contents.unwrap()).unwrap();
 
@@ -32,7 +32,7 @@ mod tests {
         assert_eq!(order_book.bids.get(&BigDecimal::from_str("0.04911").unwrap()).unwrap().quantity, BigDecimal::from_str("0.872").unwrap());
         assert_eq!(order_book.offers.get(&BigDecimal::from_str("0.04912").unwrap()).unwrap().quantity, BigDecimal::from_str("12.36374816").unwrap());
 
-        let update = "update.json";
+        let update = "tests/resources/update.json";
         let snapshot_contents = fs::read_to_string(update);
         let websocket_update: CoinbaseWebsocketMessage = serde_json::from_str(&*snapshot_contents.unwrap()).unwrap();
 

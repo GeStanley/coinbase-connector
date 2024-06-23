@@ -1,11 +1,12 @@
 use actix_codec::Framed;
+use actix_http::encoding::Decoder;
+use actix_http::Payload;
 use actix_http::ws::Codec;
-use awc::{BoxedSocket, Client};
+use awc::{BoxedSocket, Client, ClientResponse};
 use futures_util::SinkExt;
 use serde::{Deserialize, Serialize};
 use serde_json::to_string;
 
-use crate::_handle_response;
 use crate::coinbase::api::websocket::CoinbaseWebsocketSubscription;
 use crate::coinbase::jwt::token::{sign_http, sign_websocket};
 
@@ -95,5 +96,23 @@ pub async fn send_http_request(key: &CoinbaseCloudApiV2) {
     match res {
         Ok(response) => { _handle_response(response).await; }
         Err(_) => {}
+    }
+}
+
+
+async fn _handle_response(mut response: ClientResponse<Decoder<Payload>>) {
+    let fn_name = "handle_response";
+    println!("{}: Response: {:?}", fn_name, &response);
+
+
+    match response.body().await {
+        Ok(body) => {
+            let _foo = body.to_vec();
+            println!("==== BODY ====");
+            println!("{:?}", String::from_utf8(_foo));
+        }
+        Err(_err) => {
+            println!("error {:?}", _err);
+        }
     }
 }

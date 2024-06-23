@@ -1,48 +1,18 @@
-use std::any::Any;
-use std::error::Error;
-use std::io::Read;
-
 use actix::Actor;
 use actix_http::encoding::Decoder;
 use actix_web::{App, HttpServer, web};
 use actix_web::dev::Payload;
 use awc::ClientResponse;
 use futures_util::{SinkExt as _, StreamExt as _};
-use rand::RngCore;
-use serde::{Deserialize, Serialize};
 
-use controller::order_book_controller::order_book_route;
-use controller::status_controller::status;
-use controller::websocket_controller::index;
-
-use crate::coinbase::coinbase_api::{connect_websocket, get_subscribe_message};
-use crate::coinbase::data_handler::CoinbaseDataHandler;
-use crate::coinbase::jwt::token::create_api_key;
-use crate::websocket::connection::{WebsocketClient, WebsocketMessage};
-use crate::websocket::message_handler::{MarketDataHandler, WebsocketMessageHandler};
-
-pub mod websocket;
-pub mod controller;
-pub mod coinbase;
-pub mod marketdata;
-
-
-async fn _handle_response(mut response: ClientResponse<Decoder<Payload>>) {
-    let fn_name = "handle_response";
-    println!("{}: Response: {:?}", fn_name, &response);
-
-
-    match response.body().await {
-        Ok(body) => {
-            let _foo = body.to_vec();
-            println!("==== BODY ====");
-            println!("{:?}", String::from_utf8(_foo));
-        }
-        Err(_err) => {
-            println!("error {:?}", _err);
-        }
-    }
-}
+use coinbase_connector::coinbase::coinbase_api::{connect_websocket, get_subscribe_message};
+use coinbase_connector::coinbase::data_handler::CoinbaseDataHandler;
+use coinbase_connector::coinbase::jwt::token::create_api_key;
+use coinbase_connector::controller::order_book_controller::order_book_route;
+use coinbase_connector::controller::status_controller::status;
+use coinbase_connector::controller::websocket_controller::index;
+use coinbase_connector::websocket::connection::{WebsocketClient, WebsocketMessage};
+use coinbase_connector::websocket::message_handler::{MarketDataHandler, WebsocketMessageHandler};
 
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
