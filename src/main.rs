@@ -11,6 +11,7 @@ use coinbase_connector::coinbase::jwt::token::create_api_key;
 use coinbase_connector::controller::order_book_controller::order_book_route;
 use coinbase_connector::controller::status_controller::status;
 use coinbase_connector::controller::websocket_controller::index;
+use coinbase_connector::marketdata::order_book::Book;
 use coinbase_connector::websocket::connection::{WebsocketClient, WebsocketMessage};
 use coinbase_connector::websocket::message_handler::{MarketDataHandler, WebsocketMessageHandler};
 
@@ -25,7 +26,7 @@ async fn main() -> std::io::Result<()> {
     let mut connection = connect_websocket().await;
     let (sink, stream) = connection.split();
 
-    let boxed_handler: Box<dyn MarketDataHandler> = Box::new(CoinbaseDataHandler {});
+    let boxed_handler: Box<dyn MarketDataHandler> = Box::new(CoinbaseDataHandler { order_book: Book::new("product".to_string())});
 
     let handler_addr = WebsocketMessageHandler { market_data_handler: boxed_handler }.start();
 

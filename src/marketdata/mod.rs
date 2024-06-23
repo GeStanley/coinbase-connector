@@ -56,10 +56,10 @@ mod tests {
                                 for element in update.iter() {
                                     match element {
                                         Update::bid { event_time, price_level, new_quantity } => {
-                                            order_book.insert_update("bid", price_level, new_quantity, event_time.parse::<DateTime<Utc>>().unwrap());
+                                            order_book.insert_data("bid", price_level, new_quantity, event_time.parse::<DateTime<Utc>>().unwrap());
                                         }
                                         Update::offer { event_time, price_level, new_quantity } => {
-                                            order_book.insert_update("offer", price_level, new_quantity, event_time.parse::<DateTime<Utc>>().unwrap());
+                                            order_book.insert_data("offer", price_level, new_quantity, event_time.parse::<DateTime<Utc>>().unwrap());
                                         }
                                     }
                                 }

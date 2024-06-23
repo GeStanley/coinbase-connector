@@ -1,10 +1,14 @@
-use std::str::Utf8Error;
 use bytes::Bytes;
-use crate::coinbase::api::websocket::{CoinbaseWebsocketMessage, Event, MarketData};
+use chrono::{DateTime, Utc};
+
+use crate::coinbase::api::websocket::{CoinbaseWebsocketMessage, Event, Update};
 use crate::coinbase::api::websocket::MarketData::{snapshot, update};
+use crate::marketdata::order_book::Book;
 use crate::websocket::message_handler::MarketDataHandler;
 
-pub struct CoinbaseDataHandler {}
+pub struct CoinbaseDataHandler {
+    pub order_book: Book,
+}
 
 impl MarketDataHandler for CoinbaseDataHandler {
     fn process_text(&mut self, bytes: Bytes) {
@@ -23,6 +27,13 @@ impl MarketDataHandler for CoinbaseDataHandler {
             }
         };
 
+        self.handle_coinbase_websocket_message(message);
+    }
+}
+
+impl CoinbaseDataHandler {
+    
+    fn handle_coinbase_websocket_message(&mut self, message: CoinbaseWebsocketMessage) {
         println!("Received message sequence {}", message.sequence_num);
         for event in message.events.iter() {
             match event {
@@ -30,22 +41,42 @@ impl MarketDataHandler for CoinbaseDataHandler {
                     match e {
                         update { product_id, updates } => {
                             println!("This update for {:?} contains {:?} update!", product_id, updates.iter().size_hint());
+                            match updates {
+                                None => {}
+                                Some(list) => { self.handle_update_list(list); }
+                            }
                         }
                         snapshot { product_id, updates } => {
-                            println!("This update for {:?} contains {:?} update!", product_id, updates.iter().size_hint());
+                            println!("This snapshot for {:?} contains {:?} update!", product_id, updates.iter().size_hint());
+                            match updates {
+                                None => {}
+                                Some(list) => { self.handle_update_list(list); }
+                            }
                         }
                     }
                 }
-                Event::Subscription(_) => {
-                    println!("This is a subscription!");
+                Event::Subscription(sub) => {
+                    println!("Received a subscription confirmation!");
                 }
             }
         }
     }
-}
 
-impl CoinbaseDataHandler {
-    fn handle_snapshot() {}
+    fn handle_update_list(&mut self, updates: &Vec<Update>) {
+        let mut update_iter = updates.iter();
+        while let Some(update) = update_iter.next() {
+            self.handle_update(update);
+        }
+    }
 
-    fn handle_update() {}
+    fn handle_update(&mut self, update: &Update) {
+        match update {
+            Update::bid { event_time, price_level, new_quantity } => {
+                self.order_book.insert_data("bid", price_level, new_quantity, event_time.parse::<DateTime<Utc>>().unwrap());
+            }
+            Update::offer { event_time, price_level, new_quantity } => {
+                self.order_book.insert_data("offer", price_level, new_quantity, event_time.parse::<DateTime<Utc>>().unwrap());
+            }
+        }
+    }
 }

@@ -39,18 +39,26 @@ impl Book {
 }
 
 impl Book {
-    pub fn insert_update(&mut self, side: &str, price: &str, quantity: &str, timestamp: DateTime<Utc>) {
-        let order : Order = Order::new(side, price, quantity, timestamp);
+
+    pub fn insert_data(&mut self, side: &str, price: &str, quantity: &str, timestamp: DateTime<Utc>) {
         match side {
             "offer" => {
-                self.offers.insert(order.price.clone(), order);
+                self.insert_offer(Order::new(side, price, quantity, timestamp));
             },
             "bid" => {
-                self.bids.insert(order.price.clone(), order);
+                self.insert_bid(Order::new(side, price, quantity, timestamp));
             }
             _ => {
                 println!("Received unrecognized order side.")
             }
         }
+    }
+
+    pub fn insert_bid(&mut self, order: Order) {
+        self.bids.insert(order.price.clone(), order);
+    }
+
+    pub fn insert_offer(&mut self, order: Order) {
+        self.offers.insert(order.price.clone(), order);
     }
 }
