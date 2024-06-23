@@ -1,5 +1,6 @@
 use bytes::Bytes;
 use chrono::{DateTime, Utc};
+use log::info;
 
 use crate::coinbase::api::websocket::{CoinbaseWebsocketMessage, Event, Update};
 use crate::coinbase::api::websocket::MarketData::{snapshot, update};
@@ -22,7 +23,7 @@ impl MarketDataHandler for CoinbaseDataHandler {
         let message: CoinbaseWebsocketMessage = match serde_json::from_str(msg_utf8) {
             Ok(msg) => { msg }
             Err(_) => {
-                println!("{}", msg_utf8);
+                info!("{}", msg_utf8);
                 panic!("Could not deserialize message!");
             }
         };
@@ -32,22 +33,22 @@ impl MarketDataHandler for CoinbaseDataHandler {
 }
 
 impl CoinbaseDataHandler {
-    
+
     fn handle_coinbase_websocket_message(&mut self, message: CoinbaseWebsocketMessage) {
-        println!("Received message sequence {}", message.sequence_num);
+        info!("Received message sequence {}", message.sequence_num);
         for event in message.events.iter() {
             match event {
-                Event::MarketData(e) => {
-                    match e {
+                Event::MarketData(data) => {
+                    match data {
                         update { product_id, updates } => {
-                            println!("This update for {:?} contains {:?} update!", product_id, updates.iter().size_hint());
+                            info!("This update for {:?} contains {:?} update!", product_id, updates.iter().size_hint());
                             match updates {
                                 None => {}
                                 Some(list) => { self.handle_update_list(list); }
                             }
                         }
                         snapshot { product_id, updates } => {
-                            println!("This snapshot for {:?} contains {:?} update!", product_id, updates.iter().size_hint());
+                            info!("This snapshot for {:?} contains {:?} update!", product_id, updates.iter().size_hint());
                             match updates {
                                 None => {}
                                 Some(list) => { self.handle_update_list(list); }
@@ -56,7 +57,7 @@ impl CoinbaseDataHandler {
                     }
                 }
                 Event::Subscription(sub) => {
-                    println!("Received a subscription confirmation!");
+                    info!("Received a subscription confirmation!");
                 }
             }
         }
