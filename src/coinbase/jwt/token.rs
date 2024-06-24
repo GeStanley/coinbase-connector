@@ -39,13 +39,11 @@ pub fn create_api_key() -> CoinbaseCloudApiV2 {
     }
 }
 
-pub fn sign_http(key: &CoinbaseCloudApiV2) -> Result<String, impl Error> {
+pub fn sign_http(key: &CoinbaseCloudApiV2, uri: String) -> Result<String, impl Error> {
     let encoding_key = EcdsaPrivateKey::from_pem(key.privateKey.as_bytes()).unwrap();
 
     // let encoding_key = &EncodingKey::from_ec_pem(key_secret_bytes).unwrap();
     let now = SystemTime::now().duration_since(UNIX_EPOCH).unwrap();
-
-    let uri = "GET api.coinbase.com/api/v3/brokerage/accounts";
 
     let mut header_and_claims = HeaderAndClaims::new_dynamic();
     header_and_claims.set_sub(key.name.to_string())

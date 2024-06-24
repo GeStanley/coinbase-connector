@@ -1,0 +1,98 @@
+{
+  "channel": "l2_data",
+  "client_id": "",
+  "timestamp": "2024-06-24T19:34:10.782314214Z",
+  "sequence_num": 1,
+  "events": [
+    {
+      "type": "update",
+      "product_id": "BTC-USD",
+      "updates": [
+        {
+          "side": "bid",
+          "event_time": "2024-06-24T19:34:10.54054Z",
+          "price_level": "60029.45",
+          "new_quantity": "0.12429389"
+        },
+        {
+          "side": "bid",
+          "event_time": "2024-06-24T19:34:10.54054Z",
+          "price_level": "60029.43",
+          "new_quantity": "0"
+        },
+        {
+          "side": "bid",
+          "event_time": "2024-06-24T19:34:10.54054Z",
+          "price_level": "60029.42",
+          "new_quantity": "0"
+        },
+        {
+          "side": "bid",
+          "event_time": "2024-06-24T19:34:10.54054Z",
+          "price_level": "60029.4",
+          "new_quantity": "0"
+        },
+        {
+          "side": "bid",
+          "event_time": "2024-06-24T19:34:10.54054Z",
+          "price_level": "60029.39",
+          "new_quantity": "0"
+        },
+        {
+          "side": "bid",
+          "event_time": "2024-06-24T19:34:10.54054Z",
+          "price_level": "60029.37",
+          "new_quantity": "0"
+        },
+        {
+          "side": "bid",
+          "event_time": "2024-06-24T19:34:10.54054Z",
+          "price_level": "60029.36",
+          "new_quantity": "0"
+        },
+        {
+          "side": "bid",
+          "event_time": "2024-06-24T19:34:10.54054Z",
+          "price_level": "60029.35",
+          "new_quantity": "0"
+        },
+        {
+          "side": "bid",
+          "event_time": "2024-06-24T19:34:10.54054Z",
+          "price_level": "60029.34",
+          "new_quantity": "0"
+        },
+        {
+          "side": "bid",
+          "event_time": "2024-06-24T19:34:10.54054Z",
+          "price_level": "60029.33",
+          "new_quantity": "0"
+        },
+        {
+          "side": "bid",
+          "event_time": "2024-06-24T19:34:10.54054Z",
+          "price_level": "60029.32",
+          "new_quantity": "0"
+        },
+        {
+          "side": "bid",
+          "event_time": "2024-06-24T19:34:10.54054Z",
+          "price_level": "59997.57",
+          "new_quantity": "0.49359646"
+        },
+        {
+          "side": "bid",
+          "event_time": "2024-06-24T19:34:10.54054Z",
+          "price_level": "59997.53",
+          "new_quantity": "0"
+        },
+        {
+          "side": "offer",
+          "event_time": "2024-06-24T19:34:10.54054Z",
+          "price_level": "60075.54",
+          "new_quantity": "0"
+        }
+      ]
+    }
+  ]
+}

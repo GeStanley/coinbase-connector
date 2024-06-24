@@ -1,3 +1,5 @@
+use std::fs::File;
+use std::io::Write;
 use bytes::Bytes;
 use chrono::{DateTime, Utc};
 use log::info;
@@ -33,6 +35,10 @@ impl MarketDataHandler for CoinbaseDataHandler {
 
     fn get_order_book(&mut self) -> Book {
         self.order_book.clone()
+    }
+
+    fn get_top_of_the_book(&mut self) -> Book {
+        self.order_book.get_top_of_the_book()
     }
 }
 

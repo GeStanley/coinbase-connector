@@ -76,7 +76,11 @@ pub fn get_subscribe_message(key: &CoinbaseCloudApiV2, product: Vec<String>, cha
 }
 
 pub async fn send_http_request(key: &CoinbaseCloudApiV2) {
-    let jwt_token = match sign_http(&key) {
+
+    let uri = "api.coinbase.com/api/v3/brokerage/products";
+    let action = "GET ".to_owned();
+
+    let jwt_token = match sign_http(&key, action + uri) {
         Ok(token) => { token }
         Err(error) => {
             println!("Error: {}", error);
@@ -86,13 +90,12 @@ pub async fn send_http_request(key: &CoinbaseCloudApiV2) {
 
     println!("{}", jwt_token);
 
-    let req = Client::default().get("https://api.coinbase.com/api/v3/brokerage/accounts")
+    let req = Client::default().get("https://".to_owned() + uri)
         .insert_header(("Authorization", format!("Bearer {}", jwt_token)));
 
     let res = req.send().await;
 
-    // println!("Response: {:?}", res);
-
+    println!("Response: {:?}", res);
     match res {
         Ok(response) => { _handle_response(response).await; }
         Err(_) => {}

@@ -14,9 +14,9 @@ pub struct Order {
 }
 
 impl Order {
-    pub fn new(side : &str, price: &str, quantity: &str, timestamp: DateTime<Utc>) -> Order {
+    pub fn new(side: &str, price: &str, quantity: &str, timestamp: DateTime<Utc>) -> Order {
         Order {
-            side : side.to_string(),
+            side: side.to_string(),
             time: timestamp,
             price: BigDecimal::from_str(price).unwrap(),
             quantity: BigDecimal::from_str(quantity).unwrap(),
@@ -32,7 +32,7 @@ pub struct Book {
 }
 
 impl Book {
-    pub fn new(product : String) -> Book {
+    pub fn new(product: String) -> Book {
         Book {
             product,
             bids: BTreeMap::new(),
@@ -42,12 +42,11 @@ impl Book {
 }
 
 impl Book {
-
     pub fn insert_data(&mut self, side: &str, price: &str, quantity: &str, timestamp: DateTime<Utc>) {
         match side {
             "offer" => {
                 self.insert_offer(Order::new(side, price, quantity, timestamp));
-            },
+            }
             "bid" => {
                 self.insert_bid(Order::new(side, price, quantity, timestamp));
             }
@@ -58,10 +57,35 @@ impl Book {
     }
 
     pub fn insert_bid(&mut self, order: Order) {
-        self.bids.insert(order.price.clone(), order);
+        if order.quantity == BigDecimal::from(0) && self.bids.contains_key(&order.price) {
+            self.bids.remove(&order.price);
+        } else if order.quantity != BigDecimal::from(0) {
+            self.bids.insert(order.price.clone(), order);
+        }
     }
 
     pub fn insert_offer(&mut self, order: Order) {
-        self.offers.insert(order.price.clone(), order);
+        if order.quantity == BigDecimal::from(0) && self.offers.contains_key(&order.price) {
+            self.offers.remove(&order.price);
+        } else if order.quantity != BigDecimal::from(0) {
+            self.offers.insert(order.price.clone(), order);
+        }
+    }
+
+    pub fn get_top_of_the_book(&mut self) -> Book {
+        let mut top_of_the_book = Book::new(self.product.clone());
+        match self.bids.last_entry() {
+            None => {}
+            Some(bid) => {
+                top_of_the_book.insert_bid(bid.get().clone());
+            }
+        };
+        match self.offers.first_entry() {
+            None => {}
+            Some(offer) => {
+                top_of_the_book.insert_offer(offer.get().clone());
+            }
+        };
+        top_of_the_book
     }
 }

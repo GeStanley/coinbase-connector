@@ -35,6 +35,8 @@ pub trait MarketDataHandler: Unpin + 'static {
     fn process_text(&mut self, bytes: Bytes);
 
     fn get_order_book(&mut self) -> Book;
+
+    fn get_top_of_the_book(&mut self) -> Book;
 }
 
 impl WebsocketMessageHandler {
@@ -45,5 +47,9 @@ impl WebsocketMessageHandler {
 
     pub fn get_order_book(&mut self) -> Book {
         self.market_data_handler.get_order_book()
+    }
+
+    pub fn get_top_of_the_book(&mut self) -> Book {
+        self.market_data_handler.get_top_of_the_book()
     }
 }
