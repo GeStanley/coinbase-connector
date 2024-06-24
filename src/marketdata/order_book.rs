@@ -3,7 +3,9 @@ use std::str::FromStr;
 
 use bigdecimal::BigDecimal;
 use chrono::{DateTime, Utc};
+use serde::{Deserialize, Serialize};
 
+#[derive(Clone, Serialize, Deserialize)]
 pub struct Order {
     pub side: String,
     pub time: DateTime<Utc>,
@@ -22,6 +24,7 @@ impl Order {
     }
 }
 
+#[derive(Clone, Serialize, Deserialize)]
 pub struct Book {
     pub product: String,
     pub bids: BTreeMap<BigDecimal, Order>,

@@ -30,11 +30,15 @@ impl MarketDataHandler for CoinbaseDataHandler {
 
         self.handle_coinbase_websocket_message(message);
     }
+
+    fn get_order_book(&mut self) -> Book {
+        self.order_book.clone()
+    }
 }
 
 impl CoinbaseDataHandler {
 
-    fn handle_coinbase_websocket_message(&mut self, message: CoinbaseWebsocketMessage) {
+    pub fn handle_coinbase_websocket_message(&mut self, message: CoinbaseWebsocketMessage) {
         info!("Received message sequence {}", message.sequence_num);
         for event in message.events.iter() {
             match event {
