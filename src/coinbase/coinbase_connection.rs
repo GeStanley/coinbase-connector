@@ -6,6 +6,7 @@ use awc::BoxedSocket;
 use futures_util::stream::{SplitSink, SplitStream};
 use futures_util::StreamExt;
 use log::info;
+
 use crate::coinbase::coinbase_api::{connect_websocket, get_subscribe_message};
 use crate::coinbase::data_handler::CoinbaseDataHandler;
 use crate::coinbase::jwt::token::create_api_key;
@@ -18,15 +19,12 @@ pub struct CoinbaseConnectionHandler {
 }
 
 impl CoinbaseConnectionHandler {
-    pub async fn start() -> Addr<Self> {
+    pub async fn start(handler_addr: Addr<WebsocketMessageHandler>) -> Addr<Self> {
         info!("Starting coinbase connection...");
         let product = "BTC-USD".to_string();
 
         let key = create_api_key();
         let message = get_subscribe_message(&key, vec![product.clone()], "level2".to_string());
-
-        let boxed_handler: Box<dyn MarketDataHandler> = Box::new(CoinbaseDataHandler { order_book: Book::new(product.clone())});
-        let handler_addr = WebsocketMessageHandler { market_data_handler: boxed_handler }.start();
 
         let mut connection = connect_websocket().await;
 

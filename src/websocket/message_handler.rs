@@ -1,9 +1,26 @@
 use actix::prelude::*;
 use bytes::Bytes;
+use log::info;
+use crate::coinbase::coinbase_connection::CoinbaseConnectionHandler;
+use crate::coinbase::data_handler::CoinbaseDataHandler;
+
 use crate::marketdata::order_book::Book;
 
 pub struct WebsocketMessageHandler {
-    pub market_data_handler: Box<dyn MarketDataHandler>,
+    market_data_handler: Box<dyn MarketDataHandler>,
+}
+
+impl WebsocketMessageHandler {
+    pub fn start(product: String) -> Addr<Self> {
+
+        let boxed_handler: Box<dyn MarketDataHandler> = Box::new(CoinbaseDataHandler { order_book: Book::new(product)});
+
+        let handler = WebsocketMessageHandler {
+            market_data_handler: boxed_handler,
+        };
+        info!("Websocket message handler started.");
+        handler.start()
+    }
 }
 
 impl Actor for WebsocketMessageHandler {
