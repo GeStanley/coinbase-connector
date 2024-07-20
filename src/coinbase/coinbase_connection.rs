@@ -9,7 +9,7 @@ use log::info;
 
 use crate::coinbase::coinbase_api::{connect_websocket, get_subscribe_message};
 use crate::coinbase::data_handler::CoinbaseDataHandler;
-use crate::coinbase::jwt::token::create_api_key;
+use crate::coinbase::jwt::private_key::CoinbaseCloudApiParser;
 use crate::marketdata::order_book::Book;
 use crate::websocket::connection::{WebsocketClient, WebsocketMessage};
 use crate::websocket::message_handler::{MarketDataHandler, WebsocketMessageHandler};
@@ -23,8 +23,8 @@ impl CoinbaseConnectionHandler {
         info!("Starting coinbase connection...");
         let product = "BTC-USD".to_string();
 
-        let key = create_api_key();
-        let message = get_subscribe_message(&key, vec![product.clone()], "level2".to_string());
+        let key = CoinbaseCloudApiParser::default().parse();
+        let message = get_subscribe_message(key, vec![product.clone()], "level2".to_string());
 
         let mut connection = connect_websocket().await;
 

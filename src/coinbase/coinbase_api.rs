@@ -4,36 +4,11 @@ use actix_http::Payload;
 use actix_http::ws::Codec;
 use awc::{BoxedSocket, Client, ClientResponse};
 use futures_util::SinkExt;
-use serde::{Deserialize, Serialize};
 use serde_json::to_string;
 
 use crate::coinbase::api::websocket::CoinbaseWebsocketSubscription;
-use crate::coinbase::jwt::token::{sign_http, sign_websocket};
-
-#[derive(Serialize, Deserialize)]
-pub struct CoinbaseCloudApi {
-    pub name: String,
-    principal: String,
-    principalType: String,
-    publicKey: String,
-    pub privateKey: String,
-    createTime: String,
-    projectId: String,
-    nickname: String,
-    scopes: Vec<String>,
-    allowedIps: Vec<String>,
-    keyType: String,
-    enabled: bool,
-    legacyScopes: Vec<String>,
-    createdByUserId: String,
-    createdByUserMongoId: String,
-}
-
-#[derive(Serialize, Deserialize)]
-pub struct CoinbaseCloudApiV2 {
-    pub name: String,
-    pub privateKey: String,
-}
+use crate::coinbase::jwt::private_key::CoinbaseCloudApiKey;
+use crate::coinbase::jwt::token::CoinbaseJwtToken;
 
 pub fn build_subscribe(product_ids: Vec<String>, channel: String, jwt: String) -> CoinbaseWebsocketSubscription {
     CoinbaseWebsocketSubscription {
@@ -62,8 +37,8 @@ pub async fn connect_websocket() -> Framed<BoxedSocket, Codec> {
     connection
 }
 
-pub fn get_subscribe_message(key: &CoinbaseCloudApiV2, product: Vec<String>, channel: String) -> String {
-    let jwt_token = match sign_websocket(&key) {
+pub fn get_subscribe_message(key: CoinbaseCloudApiKey, product: Vec<String>, channel: String) -> String {
+    let jwt_token = match CoinbaseJwtToken::new(key).sign_websocket() {
         Ok(token) => { token }
         Err(error) => {
             println!("Error: {:?}", error);
@@ -75,12 +50,11 @@ pub fn get_subscribe_message(key: &CoinbaseCloudApiV2, product: Vec<String>, cha
     result.unwrap()
 }
 
-pub async fn send_http_request(key: &CoinbaseCloudApiV2) {
-
+pub async fn send_http_request(key: CoinbaseCloudApiKey) {
     let uri = "api.coinbase.com/api/v3/brokerage/products";
     let action = "GET ".to_owned();
 
-    let jwt_token = match sign_http(&key, action + uri) {
+    let jwt_token = match CoinbaseJwtToken::new(key).sign_http(action + uri) {
         Ok(token) => { token }
         Err(error) => {
             println!("Error: {}", error);

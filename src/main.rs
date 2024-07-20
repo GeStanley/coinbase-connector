@@ -1,9 +1,7 @@
 use actix::Actor;
 use actix_web::{App, HttpServer, web};
-use coinbase_connector::coinbase::coinbase_api::send_http_request;
 
 use coinbase_connector::coinbase::coinbase_connection::CoinbaseConnectionHandler;
-use coinbase_connector::coinbase::jwt::token::create_api_key;
 use coinbase_connector::controller::order_book_controller::{order_book_route, top_of_the_book_route};
 use coinbase_connector::controller::status_controller::status;
 use coinbase_connector::websocket::message_handler::WebsocketMessageHandler;
