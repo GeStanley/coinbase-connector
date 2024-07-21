@@ -2,7 +2,7 @@ use std::fs;
 
 use serde::{Deserialize, Serialize};
 
-#[derive(Serialize, Deserialize)]
+#[derive(Serialize, Deserialize, Default, Clone)]
 pub struct CoinbaseCloudApiKey {
     pub name: String,
     #[serde(rename(serialize = "privateKey", deserialize = "privateKey"))]

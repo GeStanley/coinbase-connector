@@ -17,7 +17,11 @@ impl CoinbaseJwtToken {
         CoinbaseJwtToken { key }
     }
 
-    fn create_headers(self) -> HeaderAndClaims<Map<String, Value>> {
+    fn create_encoding_key(&mut self) -> EcdsaPrivateKey {
+        EcdsaPrivateKey::from_pem(self.key.private_key.as_bytes()).unwrap()
+    }
+
+    fn create_headers(&mut self) -> HeaderAndClaims<Map<String, Value>> {
         let mut header_and_claims = HeaderAndClaims::new_dynamic();
         header_and_claims.set_sub(self.key.name.to_string())
             .set_iss("coinbase-cloud".to_string())
@@ -35,7 +39,7 @@ impl CoinbaseJwtToken {
         header_and_claims
     }
 
-    pub fn sign_http(self, uri: String) -> Result<String, impl Error> {
+    pub fn sign_http(mut self, uri: String) -> Result<String, impl Error> {
         let encoding_key = EcdsaPrivateKey::from_pem(self.key.private_key.as_bytes()).unwrap();
 
         let mut header_and_claims = self.create_headers();
@@ -44,8 +48,8 @@ impl CoinbaseJwtToken {
         jwtk::sign(&mut header_and_claims, &encoding_key)
     }
 
-    pub fn sign_websocket(self) -> Result<String, ()> {
-        let encoding_key = EcdsaPrivateKey::from_pem(self.key.private_key.as_bytes()).unwrap();
+    pub fn sign_websocket(mut self) -> Result<String, ()> {
+        let encoding_key = self.create_encoding_key();
 
         let mut header_and_claims = self.create_headers();
 

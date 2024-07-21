@@ -1,3 +1,4 @@
+use std::ops::Deref;
 use actix_codec::Framed;
 use actix_http::encoding::Decoder;
 use actix_http::Payload;
@@ -6,18 +7,9 @@ use awc::{BoxedSocket, Client, ClientResponse};
 use futures_util::SinkExt;
 use serde_json::to_string;
 
-use crate::coinbase::api::websocket::CoinbaseWebsocketSubscription;
+use crate::coinbase::api::subscribe::CoinbaseWebsocketSubscriptionBuilder;
 use crate::coinbase::jwt::private_key::CoinbaseCloudApiKey;
 use crate::coinbase::jwt::token::CoinbaseJwtToken;
-
-pub fn build_subscribe(product_ids: Vec<String>, channel: String, jwt: String) -> CoinbaseWebsocketSubscription {
-    CoinbaseWebsocketSubscription {
-        message_type: String::from("subscribe"),
-        product_ids,
-        channel,
-        jwt,
-    }
-}
 
 pub async fn connect_websocket() -> Framed<BoxedSocket, Codec> {
     let (_res, connection) = match Client::builder().max_http_version(awc::http::Version::HTTP_11).finish()
@@ -37,16 +29,12 @@ pub async fn connect_websocket() -> Framed<BoxedSocket, Codec> {
     connection
 }
 
-pub fn get_subscribe_message(key: CoinbaseCloudApiKey, product: Vec<String>, channel: String) -> String {
-    let jwt_token = match CoinbaseJwtToken::new(key).sign_websocket() {
-        Ok(token) => { token }
-        Err(error) => {
-            println!("Error: {:?}", error);
-            panic!("Problem creating jwt token.");
-        }
-    };
 
-    let result = to_string(&build_subscribe(product, channel, jwt_token));
+pub fn get_subscribe_message(key: CoinbaseCloudApiKey, product: Vec<String>, channel: String) -> String {
+    let subscription = CoinbaseWebsocketSubscriptionBuilder::new(product, channel)
+        .jwt(key)
+        .build();
+    let result = to_string(&subscription);
     result.unwrap()
 }
 
