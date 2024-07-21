@@ -31,8 +31,9 @@ pub async fn connect_websocket() -> Framed<BoxedSocket, Codec> {
 
 
 pub fn get_subscribe_message(key: CoinbaseCloudApiKey, product: Vec<String>, channel: String) -> String {
-    let subscription = CoinbaseWebsocketSubscriptionBuilder::new(product, channel)
-        .jwt(key)
+    let subscription = CoinbaseWebsocketSubscriptionBuilder::new(key)
+        .products(product)
+        .channel(channel)
         .build();
     let result = to_string(&subscription);
     result.unwrap()
