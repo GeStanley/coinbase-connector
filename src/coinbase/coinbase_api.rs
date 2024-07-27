@@ -48,7 +48,6 @@ pub async fn send_http_request(request: &impl GetRequest) {
 
     let res = req.send().await;
 
-    println!("Response: {:?}", res);
     match res {
         Ok(response) => { _handle_response(response).await; }
         Err(_) => {}
